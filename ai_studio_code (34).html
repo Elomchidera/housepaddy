@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HOUSEPADDY - Rent Smart, Live Better</title>
+
+<!-- Firebase SDKs (Compat v10 for Inline Scope Navigation Support) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+
+<!-- Google tag (gtag.js) - GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-754JPVX55"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-754JPVX55');
+</script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{--bg:#F1F5F9; --card:white; --text:#0F2A43; --muted:#64748B; --header:#F8FAFC; --border:#E2E8F0;}
+  [data-theme="dark"]{--bg:#0B1120; --card:#1E293B; --text:#F1F5F9; --muted:#94A3B8; --header:#0F172A; --border:#334155;}
+  [data-theme="light"]{--bg:#FFFFFF; --card:#F8FAFC; --text:#0F2A43; --muted:#475569; --header:#FFFFFF; --border:#E5E7EB;}
+  body{background:var(--bg); color:var(--text); transition:background 0.3s;}
+ .theme-btn{flex:1; padding:8px; font-size:12px; border-radius:8px; border:2px solid var(--border); background:var(--card); color:var(--text); font-weight:600; cursor:pointer; transition:all 0.2s;}
+ .theme-btn.active{border-color:#FDBA2C!important; background:#FDBA2C!important; color:#0F2A43!important;}
+ .house-img{width:100%; height:192px; object-fit:cover; background:#334155;}
+  input,textarea,select{background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:12px; font-size:14px; width:100%;}
+  input[type=file]{display:none;}
+ .page{display:none; padding:16px; padding-bottom:90px;}
+ .page.active{display:block;}
+ .nav-btn.active svg,.nav-btn.active span{color:white!important;}
+ .active-cat{border-color:#FDBA2C!important; background:rgba(253,186,44,0.1)!important; color:#FDBA2C!important;}
+</style>
+</head>
+<body style="font-family:Inter, sans-serif; max-width:430px; margin:0 auto; position:relative;">
+
+<!-- Sidebar Menu -->
+<div id="sidebar" style="display:none; position:fixed; top:0; right:0; width:280px; height:100%; background:var(--card); box-shadow:-4px 0 12px rgba(0,0,0,0.2); z-index:30; padding:24px 16px; overflow-y:auto;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+    <h3 style="font-size:18px; font-weight:700; color:var(--text); margin:0;">Menu</h3>
+    <button onclick="toggleMenu()" style="background:0; border:0; font-size:24px; color:var(--muted); cursor:pointer;">✕</button>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <a href="index.html" style="padding:12px; color:var(--text); text-decoration:none; font-weight:600; border-radius:8px;">Home</a>
+    <a href="about.html" style="padding:12px; color:var(--text); text-decoration:none; font-weight:600; border-radius:8px;">About Us</a>
+    <a href="profile.html?action=become_landlord" style="padding:12px; color:var(--text); text-decoration:none; font-weight:600; border-radius:8px;">Become a Landlord</a>
+    <a href="faq.html" style="padding:12px; color:var(--text); text-decoration:none; font-weight:600; border-radius:8px;">Frequently Asked Questions</a>
+    <a href="contact.html" style="padding:12px; color:var(--text); text-decoration:none; font-weight:600; border-radius:8px;">Contact Us</a>
+
+    <div style="padding:12px 0; border-top:1px solid var(--border); margin-top:8px;">
+      <p style="font-size:12px; color:var(--muted); margin:0 0 8px 0; font-weight:600;">THEME</p>
+      <div style="display:flex; gap:8px;">
+        <button onclick="setTheme('default')" id="btn-default" class="theme-btn">Default</button>
+        <button onclick="setTheme('light')" id="btn-light" class="theme-btn">White</button>
+        <button onclick="setTheme('dark')" id="btn-dark" class="theme-btn">Black</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="overlay" onclick="toggleMenu()" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:29;"></div>
+
+<!-- HEADER -->
+<header style="position:sticky; top:0; background:var(--header); padding:12px 16px; z-index:10; border-bottom:1px solid var(--border);">
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="background:#0F2A43; width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FDBA2C" stroke-width="2.2"><path d="M3 10.5L12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5v-9z"></path><path d="M9 21V12h6v9"></path></svg>
+      </div>
+      <div>
+        <h1 style="font-size:24px; font-weight:700; margin:0; color:var(--text); line-height:1;">HOUSE<span style="color:#FDBA2C;">PADDY</span></h1>
+        <p style="font-size:10px; color:var(--muted); margin:2px 0 0 0;">Rent Smart, Live Better</p>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px; position:relative;">
+      <button id="ngBtn" style="background:var(--border); padding:6px 12px; border-radius:999px; display:flex; align-items:center; gap:6px; font-weight:600; color:var(--text); border:0; cursor:pointer; font-size:14px;">
+           NG <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </button>
+      <div id="cityMenu" style="display:none; position:absolute; top:44px; right:0; background:var(--card); border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.15); width:220px; max-height:360px; overflow-y:auto; z-index:20; color:var(--text);">
+        <div onclick="filterCity('')" style="padding:12px 16px; cursor:pointer; font-weight:600; border-bottom:1px solid var(--border);">All Nigeria</div>
+        <div onclick="filterCity('Lagos')" style="padding:12px 16px; cursor:pointer;">Lagos</div>
+        <div onclick="filterCity('Abuja')" style="padding:12px 16px; cursor:pointer;">Abuja, FCT</div>
+        <div onclick="filterCity('Port Harcourt')" style="padding:12px 16px; cursor:pointer;">Port Harcourt, Rivers</div>
+        <div onclick="filterCity('Ibadan')" style="padding:12px 16px; cursor:pointer;">Ibadan, Oyo</div>
+        <div onclick="filterCity('Benin')" style="padding:12px 16px; cursor:pointer;">Benin City, Edo</div>
+        <div onclick="filterCity('Enugu')" style="padding:12px 16px; cursor:pointer;">Enugu</div>
+        <div onclick="filterCity('Owerri')" style="padding:12px 16px; cursor:pointer;">Owerri, Imo</div>
+        <div onclick="filterCity('Uyo')" style="padding:12px 16px; cursor:pointer;">Uyo, Akwa Ibom</div>
+        <div onclick="filterCity('Kano')" style="padding:12px 16px; cursor:pointer;">Kano</div>
+        <div onclick="filterCity('Abakaliki')" style="padding:12px 16px; cursor:pointer;">Abakaliki, Ebonyi</div>
+        <div onclick="filterCity('Awka')" style="padding:12px 16px; cursor:pointer;">Awka, Anambra</div>
+        <div onclick="filterCity('Calabar')" style="padding:12px 16px; cursor:pointer;">Calabar, Cross River</div>
+        <div onclick="filterCity('Asaba')" style="padding:12px 16px; cursor:pointer;">Asaba, Delta</div>
+        <div onclick="filterCity('Warri')" style="padding:12px 16px; cursor:pointer;">Warri, Delta</div>
+        <div onclick="filterCity('Umuahia')" style="padding:12px 16px; cursor:pointer;">Umuahia, Abia</div>
+      </div>
+      <button onclick="toggleMenu()" style="background:0; border:0; cursor:pointer;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
+      </button>
+    </div>
+  </div>
+  
+  <!-- SEARCH BAR & CATEGORY TOGGLES -->
+  <div id="homeHeaderAddon">
+    <input id="s" type="text" placeholder="Search GRA, Lekki, Awka..." style="width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); margin-top:12px; font-size:14px; background:var(--card); color:var(--text);">
+    
+    <!-- Dynamic Categories (Houses, Rent a Shop, Hire Labor) -->
+    <div style="display:flex; gap:8px; margin-top:10px; margin-bottom:4px; overflow-x:auto; scrollbar-width:none;">
+      <button onclick="setCategoryFilter('house')" id="cat-house" class="active-cat" style="flex:1; padding:8px 12px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; white-space:nowrap;">🏠 Houses</button>
+      <button onclick="setCategoryFilter('shop')" id="cat-shop" style="flex:1; padding:8px 12px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; white-space:nowrap;">🛒 Rent a Shop</button>
+      <button onclick="setCategoryFilter('labor')" id="cat-labor" style="flex:1; padding:8px 12px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; white-space:nowrap;">👷 Hire Labor</button>
+    </div>
+
+    <!-- SEARCH FILTERS (Houses and Shops Only) -->
+    <div id="filterSection" style="display:flex; gap:8px; overflow-x:auto; padding:4px 0; margin-top:8px; scrollbar-width:none;">
+      <select id="filterLocation" onchange="R();" style="flex:0 0 auto; width:auto; padding:8px 12px; font-size:11px; border-radius:999px; background:var(--card); color:var(--text); border:1px solid var(--border); font-weight:600; cursor:pointer;">
+        <option value="">Any Location</option>
+        <option value="Lagos">Lagos</option>
+        <option value="Port Harcourt">Port Harcourt</option>
+        <option value="Abuja">Abuja</option>
+        <option value="Ibadan">Ibadan</option>
+        <option value="Awka">Awka</option>
+        <option value="Abakaliki">Abakaliki</option>
+        <option value="Calabar">Calabar</option>
+      </select>
+      <select id="filterBedrooms" onchange="R();" style="flex:0 0 auto; width:auto; padding:8px 12px; font-size:11px; border-radius:999px; background:var(--card); color:var(--text); border:1px solid var(--border); font-weight:600; cursor:pointer;">
+        <option value="">Any Beds</option>
+        <option value="1">1 Bed</option>
+        <option value="2">2 Beds</option>
+        <option value="3">3 Beds</option>
+        <option value="4">4 Beds</option>
+      </select>
+      <select id="filterPrice" onchange="R();" style="flex:0 0 auto; width:auto; padding:8px 12px; font-size:11px; border-radius:999px; background:var(--card); color:var(--text); border:1px solid var(--border); font-weight:600; cursor:pointer;">
+        <option value="">Any Price</option>
+        <option value="under-200k">Under ₦200k</option>
+        <option value="200k-500k">₦200k - ₦500k</option>
+        <option value="over-500k">Over ₦500k</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<!-- PAGE 1: HOME -->
+<main id="homePage" class="page active">
+  <div id="list">
+    <div style="text-align:center; padding:40px; color:var(--muted); font-size:14px;">Loading listings...</div>
+  </div>
+</main>
+
+<!-- PROPERTY/LABOR DETAILS FULL OVERLAY PAGE -->
+<div id="detailsPage" style="display:none; position:fixed; top:0; left:50%; transform:translateX(-50%); width:100%; max-width:430px; height:100%; background:var(--bg); z-index:40; overflow-y:auto; padding-bottom:90px; box-shadow:0 0 20px rgba(0,0,0,0.15);"></div>
+
+<!-- CUSTOM BRAND POPUP NOTIFICATION -->
+<div id="hpPopup" style="display:none; opacity:0; position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-20px); width:calc(100% - 32px); max-width:398px; background:#0F2A43; color:white; border-left:4px solid #FDBA2C; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.3); z-index:100; transition: transform 0.3s ease, opacity 0.3s ease; padding:16px;">
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+    <div style="display:flex; gap:12px; align-items:center;">
+      <div style="background:#1E293B; width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid #FDBA2C;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FDBA2C" stroke-width="2.5"><path d="M3 10.5L12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5v-9z"></path></svg>
+      </div>
+      <div>
+        <h4 style="margin:0; font-size:14px; font-weight:700; color:#FDBA2C; letter-spacing:0.5px;">HOUSEPADDY</h4>
+        <p id="hpPopupMessage" style="margin:2px 0 0 0; font-size:13px; color:#FFFFFF; font-weight:500;"></p>
+      </div>
+    </div>
+    <button onclick="closePopup()" style="background:none; border:none; color:#FDBA2C; font-size:18px; cursor:pointer; font-weight:bold; padding:0; line-height:1; outline:none;">✕</button>
+  </div>
+</div>
+
+<!-- Bottom Navigation -->
+<nav style="position:fixed; bottom:0; left:0; right:0; background:#0F2A43; border-top:2px solid #FDBA2C; display:flex; justify-content:space-around; padding:8px 0; max-width:430px; margin:0 auto; z-index:10;">
+  <a href="index.html" class="nav-btn active" style="background:0; border:0; display:flex; flex-direction:column; align-items:center; gap:4px; color:#BFDBFE; font-size:11px; font-weight:600; cursor:pointer; text-decoration:none;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+    <span>Home</span>
+  </a>
+  <a href="post.html" class="nav-btn" style="background:0; border:0; display:flex; flex-direction:column; align-items:center; gap:4px; color:#BFDBFE; font-size:11px; font-weight:600; cursor:pointer; text-decoration:none;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg>
+    <span>Post</span>
+  </a>
+  <a href="profile.html" class="nav-btn" style="background:0; border:0; display:flex; flex-direction:column; align-items:center; gap:4px; color:#BFDBFE; font-size:11px; font-weight:600; cursor:pointer; text-decoration:none;">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    <span>Profile</span>
+  </a>
+</nav>
+
+<script>
+// --- FIREBASE CONFIGURATION SETUP ---
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID",
+  measurementId: "G-754JPVX55"
+};
+
+// Initialize Firebase
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+const auth = firebase.auth();
+const storage = firebase.storage();
+
+// --- STATE MANAGEMENT ---
+let currentCity = '';
+let currentCategory = 'house';
+let allListings = [];
+let databaseSeeded = false;
+
+// --- HP POPUP SYSTEM ---
+let popupTimeout = null;
+function showPopup(message, type = 'success') {
+  const popup = document.getElementById('hpPopup');
+  const msgEl = document.getElementById('hpPopupMessage');
+  if (!popup || !msgEl) return;
+
+  msgEl.innerText = message;
+  popup.style.borderLeftColor = (type === 'error') ? '#EF4444' : '#FDBA2C';
+
+  if (popupTimeout) {
+    clearTimeout(popupTimeout);
+  }
+
+  popup.style.display = 'block';
+  setTimeout(() => {
+    popup.style.opacity = '1';
+    popup.style.transform = 'translateX(-50%) translateY(0)';
+  }, 10);
+
+  popupTimeout = setTimeout(() => {
+    closePopup();
+  }, 3000);
+}
+
+function closePopup() {
+  const popup = document.getElementById('hpPopup');
+  if (!popup) return;
+  popup.style.opacity = '0';
+  popup.style.transform = 'translateX(-50%) translateY(-20px)';
+  setTimeout(() => {
+    popup.style.display = 'none';
+  }, 300);
+}
+
+// --- DATABASE SEEDER ---
+async function checkAndSeedDatabase() {
+  try {
+    const listingsCount = await db.collection('listings').limit(1).get();
+    if (listingsCount.empty) {
+      const houses = [
+        {
+          category: "house",
+          t: "3 Bedroom Flat + BQ",
+          p: "₦450,000/year",
+          l: "GRA Port Harcourt, Rivers",
+          b: "3 Bedroom",
+          type: "Flat",
+          desc: "A premium 3 Bedroom Flat with Boys Quarter, spacious compound, and clean water layout.",
+          images: ["https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800"],
+          img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800",
+          status: "approved",
+          owner: "admin@housepaddy.com",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        },
+        {
+          category: "house",
+          t: "Self-Contain Apartment",
+          p: "₦180,000/year",
+          l: "Lekki, Lagos",
+          b: "1 Bedroom",
+          type: "Self Contain",
+          desc: "Clean mini-apartment style self contain located in Lekki.",
+          images: ["https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=800"],
+          img: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=800",
+          status: "approved",
+          owner: "admin@housepaddy.com",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }
+      ];
+      for (const h of houses) {
+        await db.collection('listings').add(h);
+      }
+
+      const shops = [
+        {
+          category: "shop",
+          t: "Lock-up Retail Shop",
+          p: "₦300,000/year",
+          l: "Rumuokoro Market, Port Harcourt",
+          b: "None",
+          type: "Shop",
+          desc: "Highly profitable retail shop block with high foot traffic, secure layout, and stable power.",
+          images: ["https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=800"],
+          img: "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?q=80&w=800",
+          status: "approved",
+          owner: "admin@housepaddy.com",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }
+      ];
+      for (const s of shops) {
+        await db.collection('listings').add(s);
+      }
+    }
+
+    const laborCount = await db.collection('labor_profiles').limit(1).get();
+    if (laborCount.empty) {
+      const labors = [
+        {
+          category: "labor",
+          name: "Maduabuchi Okafor",
+          specialty: "Professional Electrician",
+          rate: "₦8,000/day",
+          location: "Lekki, Lagos",
+          description: "Experienced electrical contractor specialized in domestic wiring, faults detection, and fittings.",
+          image: "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?q=80&w=400",
+          status: "approved",
+          owner: "admin@housepaddy.com",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }
+      ];
+      for (const l of labors) {
+        await db.collection('labor_profiles').add(l);
+      }
+    }
+    databaseSeeded = true;
+    fetchListings();
+  } catch (err) {
+    console.error("Error seeding database: ", err);
+    fetchListings();
+  }
+}
+
+// --- DYNAMIC DATA LISTENER ---
+function fetchListings() {
+  const listEl = document.getElementById('list');
+  if (currentCategory === 'labor') {
+    db.collection('labor_profiles')
+      .where('status', '==', 'approved')
+      .onSnapshot(snapshot => {
+        allListings = [];
+        snapshot.forEach(doc => {
+          allListings.push({ id: doc.id, ...doc.data() });
+        });
+        R();
+      }, err => {
+        listEl.innerHTML = `<div style="text-align:center; padding:40px; color:var(--muted); font-size:14px;">Error loading profiles.</div>`;
+      });
+  } else {
+    db.collection('listings')
+      .where('category', '==', currentCategory)
+      .where('status', '==', 'approved')
+      .onSnapshot(snapshot => {
+        allListings = [];
+        snapshot.forEach(doc => {
+          allListings.push({ id: doc.id, ...doc.data() });
+        });
+        R();
+      }, err => {
+        listEl.innerHTML = `<div style="text-align:center; padding:40px; color:var(--muted); font-size:14px;">Error loading listings.</div>`;
+      });
+  }
+}
+
+// --- CATEGORY CONTROLLER ---
+function setCategoryFilter(category) {
+  currentCategory = category;
+  document.querySelectorAll('[id^="cat-"]').forEach(btn => btn.classList.remove('active-cat'));
+  document.getElementById('cat-' + category).classList.add('active-cat');
+
+  const filterSection = document.getElementById('filterSection');
+  if (filterSection) {
+    filterSection.style.display = (category === 'labor') ? 'none' : 'flex';
+  }
+
+  fetchListings();
+}
+
+// --- RENDERING CORE ---
+function R() {
+  const L = document.getElementById('list');
+  const S = document.getElementById('s');
+  if (!L) return;
+
+  const searchQuery = S ? S.value.toLowerCase() : '';
+  const fLoc = document.getElementById('filterLocation')?.value || '';
+  const fBed = document.getElementById('filterBedrooms')?.value || '';
+  const fPrice = document.getElementById('filterPrice')?.value || '';
+
+  let filtered = allListings.filter(x => {
+    const searchTarget = (currentCategory === 'labor') 
+      ? (x.name + ' ' + x.specialty + ' ' + x.location).toLowerCase() 
+      : (x.t + ' ' + x.l).toLowerCase();
+    
+    const matchesSearch = searchTarget.includes(searchQuery);
+    
+    const matchesCity = (currentCategory === 'labor')
+      ? x.location.toLowerCase().includes(currentCity.toLowerCase())
+      : x.l.toLowerCase().includes(currentCity.toLowerCase());
+
+    return matchesSearch && matchesCity;
+  });
+
+  if (currentCategory !== 'labor') {
+    if (fLoc) {
+      filtered = filtered.filter(x => x.l.toLowerCase().includes(fLoc.toLowerCase()));
+    }
+    if (fBed) {
+      filtered = filtered.filter(x => x.b && x.b.includes(fBed));
+    }
+    if (fPrice) {
+      filtered = filtered.filter(x => {
+        const numPrice = parseFloat(x.p.replace(/[^0-9]/g, ''));
+        if (isNaN(numPrice)) return true;
+        if (fPrice === 'under-200k') return numPrice < 200000;
+        if (fPrice === '200k-500k') return numPrice >= 200000 && numPrice <= 500000;
+        if (fPrice === 'over-500k') return numPrice > 500000;
+        return true;
+      });
+    }
+  }
+
+  if (filtered.length === 0) {
+    L.innerHTML = `<div style="text-align:center; padding:40px; color:var(--muted); font-size:14px;">No listings found.</div>`;
+    return;
+  }
+
+  if (currentCategory === 'labor') {
+    L.innerHTML = filtered.map(x => `
+      <div style="background:var(--card); border-radius:16px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden; padding:16px; display:flex; gap:16px; align-items:center;">
+        <img src="${x.image || 'https://placehold.co/150/1E293B/FDBA2C?text=LABOR'}" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #FDBA2C;">
+        <div style="flex:1;">
+          <h3 onclick="openDetails('${x.id}', 'labor')" style="font-weight:700; margin:0; color:var(--text); cursor:pointer; font-size:16px;">${x.name}</h3>
+          <p style="color:#FDBA2C; font-weight:600; font-size:13px; margin:2px 0;">${x.specialty}</p>
+          <p style="color:var(--muted); font-size:12px; margin:2px 0;">📍 ${x.location}</p>
+          <p style="color:var(--text); font-weight:700; font-size:13px; margin:4px 0 0 0;">${x.rate || 'Negotiable'}</p>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button onclick="openDetails('${x.id}', 'labor')" style="background:var(--border); color:var(--text); font-size:11px; font-weight:700; padding:6px 12px; border-radius:8px; border:0; cursor:pointer;">Profile</button>
+          <a href="https://wa.me/2347026898176?text=Hi%20HOUSEPADDY,%20I%20want%20to%20hire%20${encodeURIComponent(x.name)}%20(${encodeURIComponent(x.specialty)})" style="background:#25D366; color:white; font-size:11px; font-weight:700; padding:6px 12px; border-radius:8px; text-decoration:none; text-align:center;">Hire</a>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    L.innerHTML = filtered.map(x => {
+      const coverImage = (x.images && x.images.length > 0) ? x.images[0] : (x.img || 'https://placehold.co/600x400/1E293B/FDBA2C?text=HOUSEPADDY');
+      return `
+        <div style="background:var(--card); border-radius:16px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,0.1); overflow:hidden;">
+          <div style="position:relative;">
+            <div style="position:absolute; top:12px; left:12px; background:#10B981; color:white; font-size:12px; font-weight:600; padding:4px 8px; border-radius:999px; z-index:2;">Verified</div>
+            <img src="${coverImage}" class="house-img" onclick="openDetails('${x.id}', 'listing')" style="cursor:pointer;" onerror="this.src='https://placehold.co/600x400/1E293B/FDBA2C?text=HOUSEPADDY'">
+          </div>
+          <div style="padding:16px;">
+            <p style="color:var(--text); font-weight:bold; font-size:18px; margin:0 0 4px 0;">${x.p}</p>
+            <h3 onclick="openDetails('${x.id}', 'listing')" style="cursor:pointer; font-weight:600; margin:0 0 4px 0; color:var(--text);">${x.t}</h3>
+            <p style="color:var(--muted); font-size:14px; margin:4px 0;">📍 ${x.l}</p>
+            <p style="color:var(--muted); font-size:14px; margin:4px 0;">📐 Size: ${x.size || 'Standard'} | ${currentCategory === 'house' ? x.b : 'Commercial space'}</p>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px;">
+              <button onclick="openDetails('${x.id}', 'listing')" style="background:var(--border); color:var(--text); font-weight:600; padding:12px; border-radius:12px; cursor:pointer; font-size:13px; border:0;">View Details</button>
+              <a href="https://api.whatsapp.com/send?phone=2347026898176&text=Hi%20HOUSEPADDY,%20I%20want%20to%20inquire%20about%20the%20${currentCategory}%20listing:%20${encodeURIComponent(x.t)}" style="background:#25D366; color:white; font-weight:600; padding:12px; border-radius:12px; display:flex; justify-content:center; align-items:center; text-decoration:none; font-size:13px;">Chat on WhatsApp</a>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+// --- VIEW DETAILS PORTAL ---
+async function openDetails(id, type) {
+  const detailsPage = document.getElementById('detailsPage');
+  detailsPage.style.display = 'block';
+  detailsPage.innerHTML = `<div style="padding:20px; text-align:center; color:var(--muted);">Loading details...</div>`;
+
+  try {
+    if (type === 'labor') {
+      const doc = await db.collection('labor_profiles').doc(id).get();
+      if (!doc.exists) return;
+      const x = doc.data();
+      detailsPage.innerHTML = `
+        <header style="position:sticky; top:0; background:var(--header); padding:12px 16px; z-index:10; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <button onclick="closeDetails()" style="background:0; border:0; cursor:pointer; color:var(--text); font-weight:700; font-size:15px; display:flex; align-items:center; gap:6px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back
+          </button>
+          <h3 style="font-size:18px; font-weight:700; color:var(--text); margin:0;">Labor Profile</h3>
+          <div></div>
+        </header>
+        <div style="padding:16px; text-align:center;">
+          <img src="${x.image || 'https://placehold.co/150/1E293B/FDBA2C?text=LABOR'}" style="width:140px; height:140px; border-radius:50%; object-fit:cover; margin:0 auto 16px; border:4px solid #FDBA2C;">
+          <h2 style="font-size:22px; font-weight:700; color:var(--text); margin:0;">${x.name}</h2>
+          <p style="color:#FDBA2C; font-weight:700; font-size:16px; margin:4px 0;">${x.specialty}</p>
+          <p style="color:var(--muted); font-size:14px; margin:4px 0 16px 0;">📍 ${x.location}</p>
+
+          <div style="background:var(--card); padding:16px; border-radius:12px; margin-bottom:16px; border:1px solid var(--border); text-align:left;">
+            <h4 style="font-size:14px; font-weight:700; color:var(--text); margin:0 0 8px 0;">Expected Daily/Monthly Rate</h4>
+            <span style="font-size:18px; font-weight:800; color:#10B981;">${x.rate || 'Negotiable'}</span>
+          </div>
+
+          <div style="background:var(--card); padding:16px; border-radius:12px; margin-bottom:24px; border:1px solid var(--border); text-align:left;">
+            <h4 style="font-size:14px; font-weight:700; color:var(--text); margin:0 0 8px 0;">About Me / Skills</h4>
+            <p style="color:var(--muted); font-size:14px; line-height:1.6; margin:0;">${x.description || 'Professional provider ready to complete standard tasks with verified precision.'}</p>
+          </div>
+
+          <a href="https://wa.me/2347026898176?text=Hi%20HOUSEPADDY,%20I%20am%20interested%20in%20hiring%20${encodeURIComponent(x.name)}%20for%20their%20${encodeURIComponent(x.specialty)}%20service." target="_blank" style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%; background:#25D366; color:white; font-weight:700; padding:14px; border-radius:12px; text-decoration:none; text-align:center;">
+            💬 Hire Now on WhatsApp
+          </a>
+        </div>
+      `;
+    } else {
+      const doc = await db.collection('listings').doc(id).get();
+      if (!doc.exists) return;
+      const x = doc.data();
+      
+      let imagesHTML = '';
+      if (x.images && x.images.length > 0) {
+        imagesHTML = `
+          <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:8px; scrollbar-width:none; margin-bottom:16px;">
+            ${x.images.map(imgSrc => `
+              <img src="${imgSrc}" style="flex:0 0 85%; width:85%; height:260px; object-fit:cover; border-radius:16px; background:#334155;" onerror="this.src='https://placehold.co/600x400/1E293B/FDBA2C?text=HOUSEPADDY'">
+            `).join('')}
+          </div>
+        `;
+      } else {
+        imagesHTML = `<img src="${x.img || 'https://placehold.co/600x400/1E293B/FDBA2C?text=HOUSEPADDY'}" style="width:100%; height:260px; object-fit:cover; border-radius:16px; background:#334155; margin-bottom:16px;">`;
+      }
+
+      detailsPage.innerHTML = `
+        <header style="position:sticky; top:0; background:var(--header); padding:12px 16px; z-index:10; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <button onclick="closeDetails()" style="background:0; border:0; cursor:pointer; color:var(--text); font-weight:700; font-size:15px; display:flex; align-items:center; gap:6px;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back
+          </button>
+          <h3 style="font-size:18px; font-weight:700; color:var(--text); margin:0;">Details</h3>
+          <div></div>
+        </header>
+        <div style="padding:16px;">
+          ${imagesHTML}
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:24px; font-weight:800; color:#10B981;">${x.p}</span>
+            <span style="background:#10B981; color:white; font-size:12px; font-weight:600; padding:4px 10px; border-radius:999px;">Verified</span>
+          </div>
+          <h2 style="font-size:20px; font-weight:700; color:var(--text); margin:0 0 6px 0;">${x.t}</h2>
+          <p style="color:var(--muted); font-size:14px; margin:0 0 16px 0;">📍 ${x.l}</p>
+
+          <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:12px; background:var(--card); padding:14px; border-radius:12px; margin-bottom:16px; border:1px solid var(--border);">
+            <div style="font-size:13px; color:var(--text);"><strong>Category:</strong> ${x.category.toUpperCase()}</div>
+            <div style="font-size:13px; color:var(--text);"><strong>Size:</strong> ${x.size || 'Standard'}</div>
+            <div style="font-size:13px; color:var(--text);"><strong>Type:</strong> ${x.type || 'Standard Layout'}</div>
+            <div style="font-size:13px; color:var(--text);"><strong>Bedrooms:</strong> ${x.b || 'None'}</div>
+          </div>
+
+          <div style="background:var(--card); padding:16px; border-radius:12px; margin-bottom:16px; border:1px solid var(--border);">
+            <h4 style="font-size:15px; font-weight:700; color:var(--text); margin:0 0 8px 0;">Description</h4>
+            <p style="color:var(--muted); font-size:14px; line-height:1.6; margin:0;">${x.desc || 'No further description provided.'}</p>
+          </div>
+
+          <a href="https://api.whatsapp.com/send?phone=2347026898176&text=Hi%20HOUSEPADDY,%20I%20am%20interested%20in%20the%20${x.category}%20listing:%20${encodeURIComponent(x.t)}%20at%20${encodeURIComponent(x.l)}" target="_blank" style="display:flex; align-items:center; justify-content:center; gap:8px; width:100%; background:#25D366; color:white; font-weight:700; padding:14px; border-radius:12px; text-decoration:none; text-align:center;">
+            💬 Inquire on WhatsApp
+          </a>
+        </div>
+      `;
+    }
+  } catch (e) {
+    showPopup("Failed to load details.", "error");
+  }
+}
+
+function closeDetails() {
+  document.getElementById('detailsPage').style.display = 'none';
+}
+
+// --- FILTERS & MENU SYSTEM ---
+function filterCity(city) {
+  currentCity = city;
+  document.getElementById('cityMenu').style.display = 'none';
+  if (document.getElementById('s')) document.getElementById('s').value = '';
+  R();
+}
+
+function toggleMenu(){
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  const isOpen = sidebar.style.display === 'block';
+  sidebar.style.display = isOpen ? 'none' : 'block';
+  overlay.style.display = isOpen ? 'none' : 'block';
+}
+
+document.getElementById('ngBtn').onclick = () => {
+  const menu = document.getElementById('cityMenu');
+  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#ngBtn') && !e.target.closest('#cityMenu')) {
+    document.getElementById('cityMenu').style.display = 'none';
+  }
+});
+
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('housepaddy_theme', t);
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + t).classList.add('active');
+}
+const savedTheme = localStorage.getItem('housepaddy_theme') || 'default';
+setTheme(savedTheme);
+
+if (document.getElementById('s')) {
+  document.getElementById('s').oninput = R;
+}
+
+// --- INIT APP ---
+checkAndSeedDatabase();
+</script>
+</body>
+</html>

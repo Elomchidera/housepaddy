@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post Property - HOUSEPADDY</title>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{--bg:#0B1120; --card:#1E293B; --text:#F1F5F9; --muted:#94A3B8; --header:#0F172A; --border:#334155; --gold:#FDBA2C; --green:#10B981;}
+  body{background:var(--bg); color:var(--text); font-family:Inter, sans-serif; max-width:430px; margin:0 auto; padding-bottom:90px;}
+  input,textarea,select{background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:12px; font-size:14px; width:100%;}
+  input[type=file]{display:none;}
+  .preview-grid{display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-top:8px;}
+  .preview-grid img{width:100%; height:100px; object-fit:cover; border-radius:8px; border:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<header style="position:sticky; top:0; background:var(--header); padding:12px 16px; z-index:10; border-bottom:1px solid var(--border);">
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="background:#0F2A43; width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.2"><path d="M3 10.5L12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5v-9z"></path><path d="M9 21V12h6v9"></path></svg>
+      </div>
+      <div>
+        <h1 style="font-size:24px; font-weight:700; margin:0; color:var(--text); line-height:1;">HOUSE<span style="color:var(--gold);">PADDY</span></h1>
+        <p style="font-size:10px; color:var(--muted); margin:2px 0 0 0;">Rent Smart, Live Better</p>
+      </div>
+    </div>
+    <button onclick="history.back()" style="background:0; border:0; cursor:pointer;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
+    </button>
+  </div>
+</header>
+
+<main style="padding:16px;">
+  <h2 style="font-size:22px; font-weight:700; margin:0 0 16px 0; color:var(--text);">📸 Post Listings</h2>
+  
+  <div style="margin-bottom:16px;">
+    <label style="font-size:12px; color:var(--muted); font-weight:700; display:block; margin-bottom:6px;">Select Posting Type</label>
+    <select id="postCategory" onchange="toggleFormFields()">
+      <option value="house">🏠 House for Rent</option>
+      <option value="shop">🛒 Shop for Rent</option>
+      <option value="labor">👷 Hire Labor Profile</option>
+    </select>
+  </div>
+
+  <form id="postForm" onsubmit="handlePostSubmit(event)" style="display:flex; flex-direction:column; gap:12px; background:var(--card); padding:16px; border-radius:16px;">
+    
+    <div id="standardFields" style="display:flex; flex-direction:column; gap:12px;">
+      <input id="pTitle" type="text" placeholder="Listing Title (e.g. 3 Bedroom Flat)">
+      <input id="pPrice" type="text" placeholder="Price (e.g. ₦450,000/year)">
+      <input id="pLocation" type="text" placeholder="Location (e.g. GRA Port Harcourt)">
+      
+      <div id="houseSpecifics" style="display:flex; gap:12px;">
+        <select id="pBedroom" style="flex:1;">
+          <option value="">Bedrooms</option>
+          <option>1</option><option>2</option><option>3</option><option>4</option><option>5+</option>
+        </select>
+        <select id="pBathroom" style="flex:1;">
+          <option value="">Bathrooms</option>
+          <option>1</option><option>2</option><option>3</option><option>4</option><option>5+</option>
+        </select>
+      </div>
+
+      <input id="pSize" type="text" placeholder="Size (e.g. 1200 sqft)">
+      <select id="pType">
+        <option value="">Property/Building Type</option>
+        <option>Flat</option><option>Duplex</option><option>Bungalow</option><option>Self Contain</option><option>Commercial Block</option>
+      </select>
+    </div>
+
+    <div id="laborFields" style="display:none; flex-direction:column; gap:12px;">
+      <input id="lName" type="text" placeholder="Full Name">
+      <input id="lSpecialty" type="text" placeholder="Specialty (e.g. Electrician, Plumber)">
+      <input id="lRate" type="text" placeholder="Expected Rate (e.g. ₦5,000/day)">
+      <input id="lLocation" type="text" placeholder="Service Areas (e.g. Lekki, Lagos)">
+    </div>
+
+    <textarea id="pDesc" placeholder="Description/Specifications" rows="3" required></textarea>
+
+    <label for="pImage" style="background:var(--border); color:var(--text); padding:12px; border-radius:8px; text-align:center; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+      Upload Gallery Images
+    </label>
+    <input id="pImage" type="file" accept="image/*" multiple required>
+    <div id="previewGrid" class="preview-grid"></div>
+
+    <button type="submit" id="submitBtn" style="margin-top:4px; width:100%; background:var(--green); color:white; font-weight:700; padding:14px; border-radius:12px; border:0; cursor:pointer; font-size:16px;">
+      Publish & Send for Approval
+    </button>
+    <p style="font-size:11px; color:var(--muted); text-align:center; margin:0;">Listing will appear on feed after admin verification.</p>
+  </form>
+</main>
+
+<nav style="position:fixed; bottom:0; left:0; right:0; background:#0F2A43; border-top:2px solid var(--gold); display:flex; justify-content:space-around; padding:8px 0; max-width:430px; margin:0 auto; z-index:10;">
+  <a href="./index.html" style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#BFDBFE; font-size:11px; font-weight:600; text-decoration:none;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>Home</span></a>
+  <a href="./post.html" style="display:flex; flex-direction:column; align-items:center; gap:4px; color:white; font-size:11px; font-weight:600; text-decoration:none;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg><span>Post</span></a>
+  <a href="./profile.html" style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#BFDBFE; font-size:11px; font-weight:600; text-decoration:none;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span>Profile</span></a>
+</nav>
+
+<script>
+// --- FIREBASE CONFIGURATION SETUP ---
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID",
+  measurementId: "G-754JPVX55"
+};
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+const auth = firebase.auth();
+const storage = firebase.storage();
+
+let selectedFiles = [];
+
+function toggleFormFields() {
+  const cat = document.getElementById('postCategory').value;
+  const standard = document.getElementById('standardFields');
+  const houseSpecifics = document.getElementById('houseSpecifics');
+  const labor = document.getElementById('laborFields');
+
+  if (cat === 'labor') {
+    standard.style.display = 'none';
+    labor.style.display = 'flex';
+  } else if (cat === 'shop') {
+    standard.style.display = 'flex';
+    houseSpecifics.style.display = 'none';
+    labor.style.display = 'none';
+  } else {
+    standard.style.display = 'flex';
+    houseSpecifics.style.display = 'flex';
+    labor.style.display = 'none';
+  }
+}
+
+document.getElementById('pImage').onchange = e => {
+  const files = e.target.files;
+  selectedFiles = [...files];
+  const grid = document.getElementById('previewGrid');
+  grid.innerHTML = '';
+  
+  selectedFiles.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      grid.innerHTML += `<img src="${ev.target.result}">`;
+    };
+    reader.readAsDataURL(file);
+  });
+};
+
+async function handlePostSubmit(e) {
+  e.preventDefault();
+  
+  const user = auth.currentUser;
+  if (!user) {
+    alert("Please log in first to publish postings!");
+    window.location.href = "login.html";
+    return;
+  }
+
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  submitBtn.innerText = "Uploading files to storage...";
+
+  const cat = document.getElementById('postCategory').value;
+  const desc = document.getElementById('pDesc').value;
+
+  try {
+    const imageUrls = [];
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i];
+      const storageRef = storage.ref(`listings/${Date.now()}_${i}_${file.name}`);
+      const uploadTask = await storageRef.put(file);
+      const url = await uploadTask.ref.getDownloadURL();
+      imageUrls.push(url);
+    }
+
+    if (imageUrls.length === 0) {
+      imageUrls.push("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800");
+    }
+
+    const userDoc = await db.collection('users').doc(user.uid).get();
+    const userData = userDoc.data() || {};
+    const isAdmin = userData.role === 'admin';
+    const postStatus = isAdmin ? 'approved' : 'pending';
+
+    if (cat === 'labor') {
+      const name = document.getElementById('lName').value;
+      const specialty = document.getElementById('lSpecialty').value;
+      const rate = document.getElementById('lRate').value;
+      const location = document.getElementById('lLocation').value;
+
+      await db.collection('labor_profiles').add({
+        name,
+        specialty,
+        rate,
+        location,
+        description: desc,
+        image: imageUrls[0],
+        status: postStatus,
+        owner: user.email,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    } else {
+      const t = document.getElementById('pTitle').value;
+      const p = document.getElementById('pPrice').value;
+      const l = document.getElementById('pLocation').value;
+      const b = document.getElementById('pBedroom').value;
+      const ba = document.getElementById('pBathroom').value;
+      const size = document.getElementById('pSize').value;
+      const type = document.getElementById('pType').value;
+
+      await db.collection('listings').add({
+        category: cat,
+        t,
+        p,
+        l,
+        b: b ? b + ' Bedroom' : 'None',
+        ba: ba || 'None',
+        size: size || 'Standard',
+        type: type || 'Standard Layout',
+        desc,
+        images: imageUrls,
+        img: imageUrls[0],
+        status: postStatus,
+        owner: user.email,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    const msg = `*NEW HOUSEPADDY POSTING*%0A%0ACategory: ${cat.toUpperCase()}%0ADescription: ${encodeURIComponent(desc)}%0APosted By: ${encodeURIComponent(user.email)}`;
+    window.open(`https://wa.me/2347026898176?text=${msg}`, '_blank');
+
+    alert("Success! Listing saved and submitted to review dashboard.");
+    window.location.href = "index.html";
+
+  } catch (error) {
+    console.error(error);
+    alert("Error uploading details. Please check connection parameters.");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerText = "Publish & Send for Approval";
+  }
+}
+</script>
+</body>
+</html>

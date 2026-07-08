@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Us - HOUSEPADDY</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{--bg:#0B1120; --card:#1E293B; --text:#F1F5F9; --muted:#94A3B8; --header:#0F172A; --border:#334155; --gold:#FDBA2C; --green:#10B981;}
+  body{background:var(--bg); color:var(--text); font-family:Inter, sans-serif; max-width:430px; margin:0 auto; padding-bottom:90px;}
+</style>
+</head>
+<body>
+
+<header style="position:sticky; top:0; background:var(--header); padding:12px 16px; z-index:10; border-bottom:1px solid var(--border);">
+  <div style="display:flex; align-items:center; justify-content:space-between;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <div style="background:#0F2A43; width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.2"><path d="M3 10.5L12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5v-9z"></path><path d="M9 21V12h6v9"></path></svg>
+      </div>
+      <div>
+        <h1 style="font-size:24px; font-weight:700; margin:0; color:var(--text); line-height:1;">HOUSE<span style="color:var(--gold);">PADDY</span></h1>
+        <p style="font-size:10px; color:var(--muted); margin:2px 0 0 0;">Rent Smart, Live Better</p>
+      </div>
+    </div>
+    <button onclick="history.back()" style="background:0; border:0; cursor:pointer;">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2"><line x1="4" x2="20" y1="12" y2="12"></line><line x1="4" x2="20" y1="6" y2="6"></line><line x1="4" x2="20" y1="18" y2="18"></line></svg>
+    </button>
+  </div>
+</header>
+
+<main style="padding:16px;">
+  <div style="background:var(--card); border-radius:16px; padding:20px; text-align:center;">
+    <h2 style="font-size:24px; font-weight:700; color:var(--text); margin-bottom:8px;">Contact HousePaddy</h2>
+    <p style="color:var(--muted); font-size:14px; line-height:1.6; margin-bottom:20px;">
+      Need help or have questions? Get in touch with our support team.
+    </p>
+    
+    <a href="https://wa.me/2347026898176" target="_blank" style="display:flex; align-items:center; justify-content:center; gap:8px; background:#25D366; color:white; font-weight:700; padding:14px; border-radius:12px; text-decoration:none; font-size:15px; margin-bottom:20px;">
+      💬 Chat Support on WhatsApp
+    </a>
+    
+    <div style="text-align:left; display:flex; flex-direction:column; gap:12px; border-top:1px solid var(--border); padding-top:16px;">
+      <p style="margin:0; color:var(--text); font-size:14px;"><strong>📞 Phone:</strong> +234 702 689 8176</p>
+      <p style="margin:0; color:var(--text); font-size:14px;"><strong>✉️ Email:</strong> support@housepaddy.com</p>
+      <p style="margin:0; color:var(--text); font-size:14px;"><strong>📍 Address:</strong> GRA Phase 2, Port Harcourt, Rivers State, Nigeria</p>
+    </div>
+
+    <a href="./index.html" style="display:block; width:100%; background:var(--green); color:white; font-weight:700; padding:14px; border-radius:12px; text-align:center; text-decoration:none; margin-top:20px;">
+      Back to Home
+    </a>
+  </div>
+</main>
+
+<nav style="position:fixed; bottom:0; left:0; right:0; background:#0F2A43; border-top:2px solid var(--gold); display:flex; justify-content:space-around; padding:8px 0; max-width:430px; margin:0 auto; z-index:10;">
+  <a href="./index.html" style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#BFDBFE; font-size:11px; font-weight:600; text-decoration:none;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span>Home</span></a>
+  <a href="./post.html" style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#BFDBFE; font-size:11px; font-weight:600; text-decoration:none;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"></path></svg><span>Post</span></a>
+  <a href="./profile.html" style="display:flex; flex-direction:column; align-items:center; gap:4px; color:#BFDBFE; font-size:11px; font-weight:600; text-decoration:none;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span>Profile</span></a>
+</nav>
+</body>
+</html>
